@@ -4,8 +4,8 @@ import React from "react";
 import DashboardScreen from "../screens/DashboardScreen";
 import LoginScreen from "../screens/LoginScreen";
 import MassesScreen from "../screens/MassesScreen";
+import ProfileScreen from "../screens/ProfileScreen";
 import SignupScreen from "../screens/SignupScreen";
-
 export type RootStackParamList = {
   Login: undefined;
   Signup: undefined;
@@ -23,6 +23,7 @@ export default function AppNavigator() {
         <Stack.Screen name="Signup" component={SignupScreen} />
         <Stack.Screen name="Dashboard" component={DashboardScreen} />
         <Stack.Screen name="Masses" component={MassesScreen} />
+        <Stack.Screen name="Profile" component={ProfileScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
