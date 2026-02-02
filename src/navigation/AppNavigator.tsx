@@ -1,35 +1,47 @@
-import { NavigationContainer } from "@react-navigation/native";
+import {
+  NavigationContainer,
+  useNavigationContainerRef,
+} from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import React from "react";
+import React, { useEffect } from "react";
 import { Platform } from "react-native";
-// import AnnouncementsScreen from "../screens/AnnouncementsScreen";
+
+import { supabase } from "../supabaseClient";
+
 import DashboardScreen from "../screens/DashboardScreen";
-// import DonationsScreen from "../screens/DonationsScreen";
-// import EventsScreen from "../screens/EventsScreen";
+import ForgotPasswordScreen from "../screens/ForgotPasswordScreen";
 import LoginScreen from "../screens/LoginScreen";
 import MassesScreen from "../screens/MassesScreen";
-// import MediaScreen from "../screens/MediaScreen";
 import ProfileScreen from "../screens/ProfileScreen";
-// import ReflectionsScreen from "../screens/ReflectionsScreen";
+import ResetPasswordScreen from "../screens/ResetPasswordScreen";
 import SignupScreen from "../screens/SignupScreen";
 
-// Define the parameter types for each screen
 export type RootStackParamList = {
   Login: undefined;
   Signup: undefined;
   Dashboard: { role: string; fullName?: string };
   Profile: undefined;
   Masses: undefined;
-  Announcements: undefined;
-  Events: undefined;
-  Media: undefined;
-  Donations: undefined;
-  Reflections: undefined;
+  ForgotPassword: undefined;
+  ResetPassword: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function AppNavigator() {
+  const navigationRef = useNavigationContainerRef<RootStackParamList>();
+  useEffect(() => {
+    const { data: listener } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") {
+        navigationRef.navigate("ResetPassword");
+      }
+    });
+
+    return () => {
+      listener.subscription.unsubscribe();
+    };
+  }, []);
+
   return (
     <NavigationContainer>
       <Stack.Navigator
@@ -104,55 +116,8 @@ export default function AppNavigator() {
           }}
         />
 
-        {/* Announcements Screen */}
-        {/* <Stack.Screen
-          name="Announcements"
-          component={AnnouncementsScreen}
-          options={{
-            title: "Pengumuman",
-            headerBackTitle: "",
-          }}
-        /> */}
-
-        {/* Events Screen */}
-        {/* <Stack.Screen
-          name="Events"
-          component={EventsScreen}
-          options={{
-            title: "Acara Paroki",
-            headerBackTitle: "",
-          }}
-        /> */}
-
-        {/* Media Screen */}
-        {/* <Stack.Screen
-          name="Media"
-          component={MediaScreen}
-          options={{
-            title: "Galeri Media",
-            headerBackTitle: "",
-          }}
-        /> */}
-
-        {/* Donations Screen */}
-        {/* <Stack.Screen
-          name="Donations"
-          component={DonationsScreen}
-          options={{
-            title: "Donasi",
-            headerBackTitle: "",
-          }}
-        /> */}
-
-        {/* Reflections Screen */}
-        {/* <Stack.Screen
-          name="Reflections"
-          component={ReflectionsScreen}
-          options={{
-            title: "Renungan Harian",
-            headerBackTitle: "",
-          }}
-        /> */}
+        <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+        <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

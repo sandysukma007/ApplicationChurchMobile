@@ -165,7 +165,10 @@ export default function LoginScreen({ navigation }: any) {
                 secureTextEntry
                 autoComplete="password"
               />
-              <TouchableOpacity style={styles.forgotPassword}>
+              <TouchableOpacity
+                style={styles.forgotPassword}
+                onPress={() => navigation.navigate("ForgotPassword")}
+              >
                 <Text style={styles.forgotPasswordText}>Lupa Password?</Text>
               </TouchableOpacity>
             </View>
