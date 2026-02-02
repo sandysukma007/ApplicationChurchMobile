@@ -6,6 +6,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import React, { useEffect } from "react";
 import { Platform } from "react-native";
 
+import * as Linking from "expo-linking";
 import { supabase } from "../supabaseClient";
 
 import DashboardScreen from "../screens/DashboardScreen";
@@ -31,19 +32,35 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 export default function AppNavigator() {
   const navigationRef = useNavigationContainerRef<RootStackParamList>();
   useEffect(() => {
-    const { data: listener } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") {
-        navigationRef.navigate("ResetPassword");
+    const handleDeepLink = async ({ url }: { url: string }) => {
+      if (!url) return;
+
+      const parsed = Linking.parse(url);
+      const code = parsed.queryParams?.code;
+
+      // ❗ Supabase recovery selalu pakai CODE
+      if (code) {
+        const { error } = await supabase.auth.exchangeCodeForSession(
+          String(code),
+        );
+
+        if (!error && navigationRef.isReady()) {
+          navigationRef.navigate("ResetPassword");
+        }
       }
+    };
+
+    const sub = Linking.addEventListener("url", handleDeepLink);
+
+    Linking.getInitialURL().then((url) => {
+      if (url) handleDeepLink({ url });
     });
 
-    return () => {
-      listener.subscription.unsubscribe();
-    };
+    return () => sub.remove();
   }, []);
 
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
       <Stack.Navigator
         initialRouteName="Login"
         screenOptions={{
