@@ -137,12 +137,12 @@ export default function SignupScreen({ navigation }: any) {
           showsVerticalScrollIndicator={false}
         >
           {/* Back Button */}
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={styles.backButton}
             onPress={() => navigation.goBack()}
           >
             <Text style={styles.backButtonText}>‹</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
           {/* Header Section */}
           <View style={styles.header}>
