@@ -1,6 +1,14 @@
+import {
+  Feather,
+  FontAwesome5,
+  Ionicons,
+  MaterialIcons,
+} from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect, useState } from "react";
 import {
   Alert,
+  Dimensions,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -10,6 +18,7 @@ import {
   View,
 } from "react-native";
 import { supabase } from "../supabaseClient";
+const { width } = Dimensions.get("window");
 
 export default function DashboardScreen({ route, navigation }: any) {
   const role = route.params?.role || "jemaat";
@@ -91,54 +100,81 @@ export default function DashboardScreen({ route, navigation }: any) {
     fetchProfile();
   }, []);
 
+  // Color palette based on #A85603 (warm orange/brown)
+  const primaryColor = "#A85603";
+  const primaryLight = "#FF8C42";
+  const primaryDark = "#8B4513";
+  const secondaryColor = "#E67E22";
+  const accentColor = "#F39C12";
+  const backgroundColor = "#FFF9F0";
+  const cardBackground = "#FFFFFF";
+  const textPrimary = "#2C3E50";
+  const textSecondary = "#7F8C8D";
+  const warningColor = "#E74C3C";
+  const successColor = "#27AE60";
+
   const menuItems = [
     {
       id: 1,
       title: "Jadwal Misa",
       icon: "✝️",
       screen: "Masses",
-      color: "#4299E1",
+      color: primaryColor,
       description: "Lihat jadwal misa harian & mingguan",
+      iconComponent: (
+        <FontAwesome5 name="church" size={28} color={primaryColor} />
+      ),
     },
     {
       id: 2,
       title: "Pengumuman",
       icon: "📢",
       screen: "Announcements",
-      color: "#ED8936",
+      color: secondaryColor,
       description: "Berita & pengumuman terbaru",
+      iconComponent: (
+        <Ionicons name="megaphone" size={28} color={secondaryColor} />
+      ),
     },
     {
       id: 3,
       title: "Acara Paroki",
       icon: "📅",
       screen: "Events",
-      color: "#48BB78",
+      color: "#3498DB",
       description: "Kegiatan dan acara mendatang",
+      iconComponent: <MaterialIcons name="event" size={28} color="#3498DB" />,
     },
     {
       id: 4,
-      title: "Renungan Harian",
+      title: "Renungan",
       icon: "📖",
       screen: "Reflections",
-      color: "#9F7AEA",
+      color: "#9B59B6",
       description: "Bacaan dan renungan rohani",
+      iconComponent: (
+        <FontAwesome5 name="book-open" size={28} color="#9B59B6" />
+      ),
     },
     {
       id: 5,
       title: "Donasi",
       icon: "❤️",
       screen: "Donations",
-      color: "#F56565",
+      color: "#E74C3C",
       description: "Dukungan untuk paroki",
+      iconComponent: (
+        <FontAwesome5 name="hand-holding-heart" size={28} color="#E74C3C" />
+      ),
     },
     {
       id: 6,
-      title: "Galeri Media",
+      title: "Galeri",
       icon: "🖼️",
       screen: "Media",
-      color: "#38B2AC",
+      color: "#2ECC71",
       description: "Foto & video kegiatan",
+      iconComponent: <Feather name="image" size={28} color="#2ECC71" />,
     },
   ];
 
@@ -148,9 +184,10 @@ export default function DashboardScreen({ route, navigation }: any) {
       title: "Kelola Konten",
       icon: "⚙️",
       screen: "Admin",
-      color: "#4A5568",
+      color: "#34495E",
       description: "Kelola jadwal & pengumuman",
       badge: "Admin",
+      iconComponent: <Feather name="settings" size={28} color="#34495E" />,
     },
   ];
 
@@ -161,120 +198,227 @@ export default function DashboardScreen({ route, navigation }: any) {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar backgroundColor="#4299E1" barStyle="light-content" />
+    <SafeAreaView style={[styles.safeArea, { backgroundColor }]}>
+      <StatusBar backgroundColor={primaryColor} barStyle="light-content" />
+
+      {/* Background decorative elements */}
+      <View style={styles.backgroundDecor}>
+        <View
+          style={[
+            styles.decorCircle,
+            { backgroundColor: `${primaryColor}20`, top: -50, right: -50 },
+          ]}
+        />
+        <View
+          style={[
+            styles.decorCircle,
+            { backgroundColor: `${primaryLight}20`, bottom: 100, left: -50 },
+          ]}
+        />
+      </View>
+
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={styles.header}>
+        {/* Header Section with Gradient */}
+        <LinearGradient
+          colors={[primaryColor, primaryLight]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.header}
+        >
           <View style={styles.headerContent}>
             <Text style={styles.greeting}>{getGreeting()},</Text>
             <Text style={styles.userRole}>
-              {fullName
-                ? fullName
-                : "Umat " + role.charAt(0).toUpperCase() + role.slice(1)}
+              {fullName ||
+                "Umat " + role.charAt(0).toUpperCase() + role.slice(1)}
             </Text>
+            <View style={styles.roleBadge}>
+              <Text style={styles.roleBadgeText}>
+                {role.charAt(0).toUpperCase() + role.slice(1)}
+              </Text>
+            </View>
           </View>
-          <TouchableOpacity style={styles.avatar} onPress={handleProfilePress}>
-            <Text style={styles.avatarText}>SC</Text>
-          </TouchableOpacity>
-        </View>
 
-        {/* Warning profile */}
-        {profileIncomplete && (
-          <View
-            style={{
-              backgroundColor: "#F56565",
-              padding: 10,
-              margin: 10,
-              borderRadius: 6,
-            }}
+          <TouchableOpacity
+            style={styles.avatarContainer}
+            onPress={handleProfilePress}
+            activeOpacity={0.8}
           >
-            <Text
-              style={{ color: "#fff", fontWeight: "bold", textAlign: "center" }}
+            <LinearGradient
+              colors={["#FFFFFF", "#F5F5F5"]}
+              style={styles.avatar}
             >
-              Profil Anda belum lengkap! Lengkapi data untuk pengalaman terbaik.
-            </Text>
-          </View>
+              <Text style={styles.avatarText}>SC</Text>
+              <View style={styles.onlineIndicator} />
+            </LinearGradient>
+          </TouchableOpacity>
+        </LinearGradient>
+
+        {/* Profile Warning */}
+        {profileIncomplete && (
+          <TouchableOpacity
+            style={styles.warningContainer}
+            onPress={handleProfilePress}
+            activeOpacity={0.9}
+          >
+            <LinearGradient
+              colors={["#FF6B6B", "#EE5A52"]}
+              style={styles.warningGradient}
+            >
+              <MaterialIcons name="warning" size={24} color="#FFFFFF" />
+              <View style={styles.warningTextContainer}>
+                <Text style={styles.warningTitle}>Profil Belum Lengkap</Text>
+                <Text style={styles.warningSubtitle}>
+                  Lengkapi data untuk pengalaman terbaik
+                </Text>
+              </View>
+              <MaterialIcons name="chevron-right" size={24} color="#FFFFFF" />
+            </LinearGradient>
+          </TouchableOpacity>
         )}
 
-        {/* Logout */}
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Text style={styles.logoutIcon}>🚪</Text>
-          <Text style={styles.logoutText}>Keluar</Text>
-        </TouchableOpacity>
-
-        {/* Quick Stats */}
-        <View style={styles.statsContainer}>
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>5</Text>
-            <Text style={styles.statLabel}>Misa Minggu Ini</Text>
+        {/* Stats Section */}
+        <View style={styles.statsSection}>
+          <View style={styles.statsHeader}>
+            <Text style={styles.statsTitle}>Statistik Minggu Ini</Text>
+            <TouchableOpacity>
+              <Text style={styles.statsViewAll}>Lihat Semua</Text>
+            </TouchableOpacity>
           </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>12</Text>
-            <Text style={styles.statLabel}>Pengumuman Baru</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>3</Text>
-            <Text style={styles.statLabel}>Acara Mendatang</Text>
+          <View style={styles.statsContainer}>
+            {[
+              { number: "5", label: "Misa", icon: "✝️" },
+              { number: "12", label: "Pengumuman", icon: "📢" },
+              { number: "3", label: "Acara", icon: "📅" },
+              { number: "24", label: "Partisipan", icon: "👥" },
+            ].map((stat, index) => (
+              <LinearGradient
+                key={index}
+                colors={["#FFFFFF", "#FFF5E6"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.statCard}
+              >
+                <Text style={styles.statIcon}>{stat.icon}</Text>
+                <Text style={styles.statNumber}>{stat.number}</Text>
+                <Text style={styles.statLabel}>{stat.label}</Text>
+              </LinearGradient>
+            ))}
           </View>
         </View>
 
-        {/* Main Menu */}
+        {/* Main Menu Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Menu Utama</Text>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Menu Utama</Text>
+            <View style={styles.sectionDivider} />
+          </View>
           <View style={styles.menuGrid}>
             {menuItems.map((item) => (
               <TouchableOpacity
                 key={item.id}
-                style={[styles.menuCard, { borderTopColor: item.color }]}
+                style={styles.menuCard}
                 onPress={() => handleMenuItemPress(item.screen)}
+                activeOpacity={0.7}
               >
-                <Text style={styles.menuIcon}>{item.icon}</Text>
+                <LinearGradient
+                  colors={[`${item.color}15`, `${item.color}05`]}
+                  style={styles.menuIconContainer}
+                >
+                  {item.iconComponent}
+                </LinearGradient>
                 <Text style={styles.menuTitle}>{item.title}</Text>
                 <Text style={styles.menuDescription}>{item.description}</Text>
+                <View
+                  style={[
+                    styles.menuIndicator,
+                    { backgroundColor: item.color },
+                  ]}
+                />
               </TouchableOpacity>
             ))}
           </View>
         </View>
 
-        {/* Admin panel */}
+        {/* Admin Section */}
         {isAdmin && (
           <View style={styles.section}>
-            <View style={styles.adminHeader}>
-              <Text style={styles.sectionTitle}>Panel Admin</Text>
-              <View style={styles.adminBadge}>
-                <Text style={styles.adminBadgeText}>ADMIN</Text>
+            <View style={styles.sectionHeader}>
+              <View style={styles.adminTitleContainer}>
+                <Text style={styles.sectionTitle}>Panel Admin</Text>
+                <View style={styles.adminBadge}>
+                  <Text style={styles.adminBadgeText}>ADMIN</Text>
+                </View>
               </View>
+              <View style={styles.sectionDivider} />
             </View>
             <View style={styles.menuGrid}>
               {adminItems.map((item) => (
                 <TouchableOpacity
                   key={item.id}
-                  style={[
-                    styles.menuCard,
-                    styles.adminCard,
-                    { borderTopColor: item.color },
-                  ]}
+                  style={[styles.menuCard, styles.adminCard]}
                   onPress={() => handleMenuItemPress(item.screen)}
+                  activeOpacity={0.7}
                 >
+                  <LinearGradient
+                    colors={[`${item.color}20`, `${item.color}10`]}
+                    style={styles.menuIconContainer}
+                  >
+                    {item.iconComponent}
+                  </LinearGradient>
                   <View style={styles.adminCardHeader}>
-                    <Text style={styles.menuIcon}>{item.icon}</Text>
+                    <Text style={styles.menuTitle}>{item.title}</Text>
                     <View style={styles.itemBadge}>
                       <Text style={styles.itemBadgeText}>{item.badge}</Text>
                     </View>
                   </View>
-                  <Text style={styles.menuTitle}>{item.title}</Text>
                   <Text style={styles.menuDescription}>{item.description}</Text>
+                  <View
+                    style={[
+                      styles.menuIndicator,
+                      { backgroundColor: item.color },
+                    ]}
+                  />
                 </TouchableOpacity>
               ))}
             </View>
           </View>
         )}
 
-        {/* Footer */}
+        {/* Footer Section */}
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Paroki Santa Clara Bekasi</Text>
-          <Text style={styles.footerSubText}>Versi 1.0.0</Text>
+          <LinearGradient
+            colors={[`${primaryColor}15`, "transparent"]}
+            style={styles.footerGradient}
+          >
+            <View style={styles.logoutContainer}>
+              <TouchableOpacity
+                style={styles.logoutButton}
+                onPress={handleLogout}
+                activeOpacity={0.8}
+              >
+                <LinearGradient
+                  colors={["#FFFFFF", "#FFF5E6"]}
+                  style={styles.logoutButtonInner}
+                >
+                  <MaterialIcons name="logout" size={20} color={warningColor} />
+                  <Text style={styles.logoutText}>Keluar dari Aplikasi</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.footerContent}>
+              <View style={styles.footerLogo}>
+                <View style={styles.logoCircle}>
+                  <Text style={styles.logoText}>SC</Text>
+                </View>
+                <View style={styles.footerTextContainer}>
+                  <Text style={styles.footerTitle}>Paroki Santa Clara</Text>
+                  <Text style={styles.footerSubtitle}>Bekasi</Text>
+                </View>
+              </View>
+              <Text style={styles.footerVersion}>Versi 1.0.0</Text>
+            </View>
+          </LinearGradient>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -284,121 +428,206 @@ export default function DashboardScreen({ route, navigation }: any) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#F8F9FA",
+  },
+  backgroundDecor: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 0,
+  },
+  decorCircle: {
+    position: "absolute",
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    opacity: 0.3,
   },
   container: {
     flex: 1,
     paddingHorizontal: 16,
     paddingTop: 8,
+    zIndex: 1,
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 3,
+    borderRadius: 24,
+    padding: 24,
+    marginBottom: 20,
+    shadowColor: "#A85603",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 8,
   },
   headerContent: {
     flex: 1,
   },
   greeting: {
-    fontSize: 20,
-    color: "#718096",
+    fontSize: 16,
+    color: "rgba(255, 255, 255, 0.9)",
     marginBottom: 4,
+    fontWeight: "500",
   },
   userRole: {
     fontSize: 24,
     fontWeight: "700",
-    color: "#2D3748",
+    color: "#FFFFFF",
+    marginBottom: 8,
+  },
+  roleBadge: {
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    alignSelf: "flex-start",
+    backdropFilter: "blur(10px)",
+  },
+  roleBadgeText: {
+    color: "#FFFFFF",
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  avatarContainer: {
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: "#4299E1",
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     justifyContent: "center",
     alignItems: "center",
+    borderWidth: 3,
+    borderColor: "#FFFFFF",
   },
   avatarText: {
-    color: "#FFFFFF",
-    fontSize: 18,
-    fontWeight: "600",
+    color: "#A85603",
+    fontSize: 20,
+    fontWeight: "700",
   },
-  logoutButton: {
+  onlineIndicator: {
+    position: "absolute",
+    bottom: 2,
+    right: 2,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: "#27AE60",
+    borderWidth: 2,
+    borderColor: "#FFFFFF",
+  },
+  warningContainer: {
+    borderRadius: 16,
+    marginBottom: 20,
+    shadowColor: "#E74C3C",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  warningGradient: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#FFFFFF",
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    padding: 16,
+    borderRadius: 16,
   },
-  logoutIcon: {
-    fontSize: 18,
-    marginRight: 8,
+  warningTextContainer: {
+    flex: 1,
+    marginLeft: 12,
   },
-  logoutText: {
+  warningTitle: {
+    color: "#FFFFFF",
     fontSize: 14,
     fontWeight: "600",
-    color: "#F56565",
+    marginBottom: 2,
+  },
+  warningSubtitle: {
+    color: "rgba(255, 255, 255, 0.9)",
+    fontSize: 12,
+  },
+  statsSection: {
+    marginBottom: 24,
+  },
+  statsHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  statsTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#2C3E50",
+  },
+  statsViewAll: {
+    color: "#A85603",
+    fontSize: 14,
+    fontWeight: "600",
   },
   statsContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 24,
+    flexWrap: "wrap",
   },
   statCard: {
-    flex: 1,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 12,
-    padding: 16,
-    marginHorizontal: 4,
+    width: (width - 48) / 4,
     alignItems: "center",
+    padding: 12,
+    borderRadius: 16,
+    marginBottom: 8,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
   },
+  statIcon: {
+    fontSize: 20,
+    marginBottom: 8,
+  },
   statNumber: {
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: "700",
-    color: "#4299E1",
+    color: "#2C3E50",
     marginBottom: 4,
   },
   statLabel: {
-    fontSize: 12,
-    color: "#718096",
+    fontSize: 11,
+    color: "#7F8C8D",
     textAlign: "center",
   },
   section: {
-    marginBottom: 24,
+    marginBottom: 28,
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#2D3748",
-    marginBottom: 16,
+  sectionHeader: {
+    marginBottom: 20,
   },
-  adminHeader: {
+  adminTitleContainer: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    gap: 12,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#2C3E50",
+  },
+  sectionDivider: {
+    height: 3,
+    backgroundColor: "#A85603",
+    width: 60,
+    borderRadius: 2,
+    marginTop: 8,
   },
   adminBadge: {
-    backgroundColor: "#F56565",
+    backgroundColor: "#E74C3C",
     paddingHorizontal: 12,
     paddingVertical: 4,
     borderRadius: 12,
@@ -414,30 +643,40 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   menuCard: {
-    width: "48%",
+    width: (width - 48) / 2,
     backgroundColor: "#FFFFFF",
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: 20,
+    padding: 20,
     marginBottom: 16,
-    borderTopWidth: 4,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+    position: "relative",
+    overflow: "hidden",
   },
   adminCard: {
-    backgroundColor: "#F7FAFC",
+    backgroundColor: "#F8F9FA",
+  },
+  menuIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 16,
   },
   adminCardHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
+    marginBottom: 8,
   },
   itemBadge: {
-    backgroundColor: "#E53E3E",
+    backgroundColor: "#E74C3C",
     paddingHorizontal: 8,
-    paddingVertical: 2,
+    paddingVertical: 4,
     borderRadius: 8,
   },
   itemBadgeText: {
@@ -445,113 +684,98 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: "600",
   },
-  menuIcon: {
-    fontSize: 32,
-    marginBottom: 12,
-  },
   menuTitle: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: "600",
-    color: "#2D3748",
-    marginBottom: 4,
+    color: "#2C3E50",
+    marginBottom: 6,
   },
   menuDescription: {
-    fontSize: 12,
-    color: "#718096",
-    lineHeight: 16,
-  },
-  activityCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 12,
-    padding: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  activityItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E2E8F0",
-  },
-  activityIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#EDF2F7",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-  },
-  activityContent: {
-    flex: 1,
-  },
-  activityTitle: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#2D3748",
-    marginBottom: 2,
-  },
-  activityTime: {
-    fontSize: 12,
-    color: "#A0AEC0",
-  },
-  settingsCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  settingsItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E2E8F0",
-  },
-  settingsIcon: {
-    fontSize: 24,
-    marginRight: 16,
-    width: 40,
-    textAlign: "center",
-  },
-  settingsContent: {
-    flex: 1,
-  },
-  settingsTitle: {
-    fontSize: 15,
-    fontWeight: "500",
-    color: "#2D3748",
-    marginBottom: 2,
-  },
-  settingsDescription: {
     fontSize: 13,
-    color: "#718096",
+    color: "#7F8C8D",
+    lineHeight: 18,
   },
-  settingsArrow: {
-    fontSize: 24,
-    color: "#A0AEC0",
-    fontWeight: "300",
+  menuIndicator: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 4,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
   },
   footer: {
+    borderRadius: 24,
+    marginBottom: 24,
+    overflow: "hidden",
+  },
+  footerGradient: {
+    padding: 24,
+    borderRadius: 24,
+  },
+  logoutContainer: {
+    marginBottom: 24,
+  },
+  logoutButton: {
+    borderRadius: 16,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  logoutButtonInner: {
+    flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 24,
+    justifyContent: "center",
+    padding: 16,
+    borderRadius: 16,
+    gap: 12,
+  },
+  logoutText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#E74C3C",
+  },
+  footerContent: {
+    alignItems: "center",
+  },
+  footerLogo: {
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 16,
+    gap: 12,
   },
-  footerText: {
+  logoCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "#A85603",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  logoText: {
+    color: "#FFFFFF",
+    fontSize: 18,
+    fontWeight: "700",
+  },
+  footerTextContainer: {
+    alignItems: "flex-start",
+  },
+  footerTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#2C3E50",
+    marginBottom: 2,
+  },
+  footerSubtitle: {
     fontSize: 14,
-    color: "#718096",
-    marginBottom: 4,
+    color: "#A85603",
+    fontWeight: "600",
   },
-  footerSubText: {
+  footerVersion: {
     fontSize: 12,
-    color: "#A0AEC0",
+    color: "#7F8C8D",
   },
 });
