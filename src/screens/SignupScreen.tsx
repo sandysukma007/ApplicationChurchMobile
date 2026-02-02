@@ -28,7 +28,7 @@ export default function SignupScreen({ navigation }: any) {
     // Masukkan ke users
     const { error: userError } = await supabase
       .from("users")
-      .insert([{ id: userId, email, full_name: email, role: "jemaat" }]);
+      .insert([{ id: userId, email, full_name: fullName, role: "jemaat" }]);
     if (userError) {
       Alert.alert("Error", userError.message);
       return;

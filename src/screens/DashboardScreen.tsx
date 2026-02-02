@@ -10,30 +10,85 @@ import {
   View,
 } from "react-native";
 import { supabase } from "../supabaseClient";
+
 export default function DashboardScreen({ route, navigation }: any) {
   const role = route.params?.role || "jemaat";
   const isAdmin = role === "admin";
 
-  const [fullName, setFullName] = useState<string>("");
+  const [fullName, setFullName] = useState<string | null>(null);
+  const [profileIncomplete, setProfileIncomplete] = useState(false);
 
-  // Ambil full_name user saat load dashboard
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Selamat Pagi";
+    if (hour < 15) return "Selamat Siang";
+    if (hour < 18) return "Selamat Sore";
+    return "Selamat Malam";
+  };
+
+  const handleProfilePress = () => {
+    navigation.navigate("Profile");
+  };
+
+  const handleLogout = async () => {
+    Alert.alert("Konfirmasi Logout", "Apakah Anda yakin ingin keluar?", [
+      { text: "Batal", style: "cancel" },
+      {
+        text: "Keluar",
+        style: "destructive",
+        onPress: async () => {
+          const { error } = await supabase.auth.signOut();
+          if (error) Alert.alert("Error", error.message);
+          else
+            navigation.reset({
+              index: 0,
+              routes: [{ name: "Login" }],
+            });
+        },
+      },
+    ]);
+  };
+
   useEffect(() => {
-    const fetchUser = async () => {
-      const user = supabase.auth.getUser(); // atau supabase.auth.session() kalau versi lama
-      const { data, error } = await supabase
+    const fetchProfile = async () => {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+      if (userError || !user) return;
+
+      // Ambil data dari tabel users
+      const { data: userData, error: userFetchError } = await supabase
         .from("users")
         .select("full_name")
-        .eq("id", (await user).data.user?.id)
+        .eq("id", user.id)
         .single();
 
-      if (error) {
-        console.log("Error fetching user:", error.message);
-      } else {
-        setFullName(data?.full_name || "");
-      }
+      if (userFetchError || !userData) return;
+
+      setFullName(userData.full_name);
+
+      // Ambil data dari tabel profiles untuk cek kelengkapan
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .single();
+
+      if (!profile || profileError) return;
+
+      const requiredFields = [
+        "birth_date",
+        "baptism_date",
+        "family_card_number",
+        "region",
+        "community",
+      ];
+      const incomplete = requiredFields.some((f) => !profile[f]);
+      setProfileIncomplete(incomplete);
     };
 
-    fetchUser();
+    fetchProfile();
   }, []);
 
   const menuItems = [
@@ -100,84 +155,55 @@ export default function DashboardScreen({ route, navigation }: any) {
   ];
 
   const handleMenuItemPress = (screen: string) => {
-    if (screen === "Admin") {
+    if (screen === "Admin")
       Alert.alert("Panel Admin", "Fitur admin akan segera hadir!");
-    } else {
-      navigation.navigate(screen);
-    }
-  };
-
-  const handleLogout = async () => {
-    Alert.alert("Konfirmasi Logout", "Apakah Anda yakin ingin keluar?", [
-      {
-        text: "Batal",
-        style: "cancel",
-      },
-      {
-        text: "Keluar",
-        style: "destructive",
-        onPress: async () => {
-          const { error } = await supabase.auth.signOut();
-          if (error) {
-            Alert.alert("Error", "Gagal logout: " + error.message);
-          } else {
-            navigation.reset({
-              index: 0,
-              routes: [{ name: "Login" }],
-            });
-          }
-        },
-      },
-    ]);
-  };
-
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return "Selamat Pagi";
-    if (hour < 15) return "Selamat Siang";
-    if (hour < 18) return "Selamat Sore";
-    return "Selamat Malam";
-  };
-
-  const handleProfilePress = () => {
-    navigation.navigate("Profile");
+    else navigation.navigate(screen);
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar backgroundColor="#4299E1" barStyle="light-content" />
-
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        {/* Header Section */}
+        {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerContent}>
             <Text style={styles.greeting}>{getGreeting()},</Text>
             <Text style={styles.userRole}>
               {fullName
                 ? fullName
-                : "Umat " + (role.charAt(0).toUpperCase() + role.slice(1))}
+                : "Umat " + role.charAt(0).toUpperCase() + role.slice(1)}
             </Text>
           </View>
-          <TouchableOpacity
-            style={styles.avatar}
-            onPress={handleProfilePress}
-            activeOpacity={0.8}
-          >
+          <TouchableOpacity style={styles.avatar} onPress={handleProfilePress}>
             <Text style={styles.avatarText}>SC</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Logout Button - Positioned in header area */}
-        <TouchableOpacity
-          style={styles.logoutButton}
-          onPress={handleLogout}
-          activeOpacity={0.7}
-        >
+        {/* Warning profile */}
+        {profileIncomplete && (
+          <View
+            style={{
+              backgroundColor: "#F56565",
+              padding: 10,
+              margin: 10,
+              borderRadius: 6,
+            }}
+          >
+            <Text
+              style={{ color: "#fff", fontWeight: "bold", textAlign: "center" }}
+            >
+              Profil Anda belum lengkap! Lengkapi data untuk pengalaman terbaik.
+            </Text>
+          </View>
+        )}
+
+        {/* Logout */}
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Text style={styles.logoutIcon}>🚪</Text>
           <Text style={styles.logoutText}>Keluar</Text>
         </TouchableOpacity>
 
-        {/* Quick Stats Section */}
+        {/* Quick Stats */}
         <View style={styles.statsContainer}>
           <View style={styles.statCard}>
             <Text style={styles.statNumber}>5</Text>
@@ -193,7 +219,7 @@ export default function DashboardScreen({ route, navigation }: any) {
           </View>
         </View>
 
-        {/* Main Menu Grid */}
+        {/* Main Menu */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Menu Utama</Text>
           <View style={styles.menuGrid}>
@@ -202,7 +228,6 @@ export default function DashboardScreen({ route, navigation }: any) {
                 key={item.id}
                 style={[styles.menuCard, { borderTopColor: item.color }]}
                 onPress={() => handleMenuItemPress(item.screen)}
-                activeOpacity={0.7}
               >
                 <Text style={styles.menuIcon}>{item.icon}</Text>
                 <Text style={styles.menuTitle}>{item.title}</Text>
@@ -212,7 +237,7 @@ export default function DashboardScreen({ route, navigation }: any) {
           </View>
         </View>
 
-        {/* Admin Section (if applicable) */}
+        {/* Admin panel */}
         {isAdmin && (
           <View style={styles.section}>
             <View style={styles.adminHeader}>
@@ -231,7 +256,6 @@ export default function DashboardScreen({ route, navigation }: any) {
                     { borderTopColor: item.color },
                   ]}
                   onPress={() => handleMenuItemPress(item.screen)}
-                  activeOpacity={0.7}
                 >
                   <View style={styles.adminCardHeader}>
                     <Text style={styles.menuIcon}>{item.icon}</Text>
@@ -246,69 +270,6 @@ export default function DashboardScreen({ route, navigation }: any) {
             </View>
           </View>
         )}
-
-        {/* Recent Activity Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Aktivitas Terbaru</Text>
-          <View style={styles.activityCard}>
-            <View style={styles.activityItem}>
-              <View style={styles.activityIcon}>
-                <Text>📅</Text>
-              </View>
-              <View style={styles.activityContent}>
-                <Text style={styles.activityTitle}>Misa Minggu 09:00</Text>
-                <Text style={styles.activityTime}>
-                  Hari ini, 2 jam yang lalu
-                </Text>
-              </View>
-            </View>
-            <View style={styles.activityItem}>
-              <View style={styles.activityIcon}>
-                <Text>📢</Text>
-              </View>
-              <View style={styles.activityContent}>
-                <Text style={styles.activityTitle}>Pengumuman Natal 2024</Text>
-                <Text style={styles.activityTime}>Kemarin, 10:30 WIB</Text>
-              </View>
-            </View>
-          </View>
-        </View>
-
-        {/* Profile & Settings Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Pengaturan</Text>
-          <View style={styles.settingsCard}>
-            <TouchableOpacity
-              style={styles.settingsItem}
-              onPress={handleProfilePress}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.settingsIcon}>👤</Text>
-              <View style={styles.settingsContent}>
-                <Text style={styles.settingsTitle}>Profil Saya</Text>
-                <Text style={styles.settingsDescription}>
-                  Lihat dan edit profil Anda
-                </Text>
-              </View>
-              <Text style={styles.settingsArrow}>›</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.settingsItem}
-              onPress={() => Alert.alert("Notifikasi", "Pengaturan notifikasi")}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.settingsIcon}>🔔</Text>
-              <View style={styles.settingsContent}>
-                <Text style={styles.settingsTitle}>Notifikasi</Text>
-                <Text style={styles.settingsDescription}>
-                  Atur pemberitahuan
-                </Text>
-              </View>
-              <Text style={styles.settingsArrow}>›</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
 
         {/* Footer */}
         <View style={styles.footer}>
