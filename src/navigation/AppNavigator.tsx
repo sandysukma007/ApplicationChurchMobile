@@ -35,23 +35,21 @@ export default function AppNavigator() {
     const handleDeepLink = async ({ url }: { url: string }) => {
       if (!url) return;
 
-      const parsed = Linking.parse(url);
-      const code = parsed.queryParams?.code;
+      // DEBUG (penting)
+      console.log("DEEPLINK URL:", url);
 
-      // ❗ Supabase recovery selalu pakai CODE
-      if (code) {
-        const { error } = await supabase.auth.exchangeCodeForSession(
-          String(code),
-        );
+      // ⬇️ Supabase AUTO handle recovery dari URL fragment
+      const { data, error } = await supabase.auth.getSession();
 
-        if (!error && navigationRef.isReady()) {
-          navigationRef.navigate("ResetPassword");
-        }
+      if (!error && data.session && navigationRef.isReady()) {
+        navigationRef.navigate("ResetPassword");
       }
     };
 
+    // app sedang hidup
     const sub = Linking.addEventListener("url", handleDeepLink);
 
+    // app baru dibuka dari email
     Linking.getInitialURL().then((url) => {
       if (url) handleDeepLink({ url });
     });
